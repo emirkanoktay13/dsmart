@@ -150,9 +150,12 @@ function App() {
   };
 
   const sendCode = async () => {
-    if (!isCodeComplete || gonderiliyor) {
+    if (!isCodeComplete || gonderiliyor || !getPath) {
       return;
     }
+
+    setGonderiliyor(true);
+    setHataMesaji("");
 
     try {
       const response = await fetch(
@@ -163,18 +166,27 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            path: getPath,
             kod: code,
           }),
         },
       );
 
-      if (response) {
-        console.log(response.json());
+      const data = await response.json();
+
+      console.log("Backend response:", data);
+
+      if (data.status === true) {
+        setSonuc("basarili");
       } else {
-        console.log("hata");
+        setSonuc("basarisiz");
+        setHataMesaji(data.message || "SMS kodu hatalı");
       }
     } catch (error) {
-      console.log(error);
+      console.error("sendCode hatası:", error);
+      setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
+    } finally {
+      setGonderiliyor(false);
     }
   };
 
