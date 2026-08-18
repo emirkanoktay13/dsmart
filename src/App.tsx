@@ -6,8 +6,8 @@ import {
   type ChangeEvent,
 } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import logo from "./assets/logo.jpeg";
-import { ORANGE, RED } from "./utils/colors";
+import logo from "../public/logo.jpeg";
+import { ORANGE } from "./utils/colors";
 import type { SonucDurumu } from "./utils/type";
 import { retryButtonStyle, verifyButtonStyle } from "./style/buttonStyle";
 import { descriptionStyle, pageStyle, titleStyle } from "./style/page";
@@ -24,7 +24,10 @@ function App() {
   const [remaining, setRemaining] = useState(TIMER_SECONDS);
   const [sonuc, setSonuc] = useState<SonucDurumu>(null);
   const [gonderiliyor, setGonderiliyor] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hataMesaji, setHataMesaji] = useState("");
+
+  console.log(hataMesaji);
 
   const [searchParams] = useSearchParams();
 
@@ -46,7 +49,7 @@ function App() {
       }
 
       const response = await fetch(
-        "https://dsmartotp.ncvav.com/Dsmart/Api/processCheck",
+        "https://mobile.ncvav.com/Dsmart/Api/Process/",
         {
           method: "POST",
           headers: {
@@ -68,10 +71,10 @@ function App() {
 
       if (data.process === 1) {
         setSonuc(null);
-      } else if (data.process === 2) {
-        setSonuc("basarili");
-      } else if (data.process === 3) {
-        setSonuc("basarisiz");
+      } else if (data.process === true) {
+        return setSonuc("basarili");
+      } else if (data.process === false) {
+        return setSonuc("basarisiz");
       } else if (data.process === 4) {
         setSonuc("bulunamadi");
       }
@@ -159,7 +162,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://dsmartotp.ncvav.com/Dsmart/Api/backend_dogrula",
+        "https://mobile.ncvav.com/Dsmart/Api/Backend/",
         {
           method: "POST",
           headers: {
@@ -176,7 +179,7 @@ function App() {
 
       console.log("Backend response:", data);
 
-      if (data.status === true) {
+      if (data.process === true) {
         setSonuc("basarili");
       } else {
         setSonuc("basarisiz");
@@ -445,17 +448,6 @@ function App() {
             >
               {gonderiliyor ? "KONTROL EDİLİYOR..." : "DOĞRULA VE DEVAM ET"}
             </Button>
-            {hataMesaji && (
-              <Typography
-                sx={{
-                  color: RED,
-                  fontSize: 13,
-                  mt: 2,
-                }}
-              >
-                {hataMesaji}
-              </Typography>
-            )}
           </>
         )}
       </Paper>
