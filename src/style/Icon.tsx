@@ -1,7 +1,11 @@
 import { Box } from "@mui/material";
 import { RED } from "../utils/colors";
 
-export function SonucIkon({ tip }: { tip: "basarili" | "hata" }) {
+export function SonucIkon({
+  tip,
+}: {
+  tip: "basarili" | "hata" | "bulunamadi";
+}) {
   if (tip === "basarili") {
     return (
       <Box
@@ -12,6 +16,20 @@ export function SonucIkon({ tip }: { tip: "basarili" | "hata" }) {
         }}
       >
         ✅
+      </Box>
+    );
+  }
+
+  if (tip === "bulunamadi") {
+    return (
+      <Box
+        sx={{
+          fontSize: 34,
+          mb: 1.75,
+          lineHeight: 1,
+        }}
+      >
+        ⚠️
       </Box>
     );
   }

