@@ -403,6 +403,7 @@ function App() {
               sx={{
                 ...retryButtonStyle,
                 mb: 1.25,
+                cursor: "pointer",
               }}
             >
               TEKRAR DENE
@@ -420,6 +421,7 @@ function App() {
                   backgroundColor: ORANGE,
                   color: "#fff",
                   opacity: 1,
+                  cursor: "pointer",
                 },
               }}
             >

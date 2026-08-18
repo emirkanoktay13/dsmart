@@ -10,6 +10,9 @@ export const verifyButtonStyle = {
   fontWeight: 700,
   textTransform: "uppercase",
   boxShadow: "none",
+  "&:not(.Mui-disabled)": {
+    cursor: "pointer",
+  },
   "&:hover": {
     backgroundColor: ORANGE_HOVER,
     boxShadow: "none",
@@ -26,6 +29,9 @@ export const retryButtonStyle = {
   fontWeight: 600,
   textTransform: "uppercase",
   boxShadow: "none",
+  "&:not(.Mui-disabled)": {
+    cursor: "pointer",
+  },
   "&:hover": {
     backgroundColor: "rgba(79,141,247,0.05)",
     borderColor: BLUE_HOVER,
