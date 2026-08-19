@@ -12,7 +12,7 @@ function WrongSmsStatus() {
     <Box sx={{ py: 3.5 }}>
       <SonucIkon tip="hata" />
 
-      <Typography sx={titleStyle}>İşlem Başarısız</Typography>
+      <Typography sx={titleStyle}>Sms Kodu Hatalı</Typography>
 
       <Typography
         sx={{
@@ -20,8 +20,7 @@ function WrongSmsStatus() {
           mb: 3.5,
         }}
       >
-        İşleminiz, çok fazla hatalı kod girişi yapıldığı için başarısız
-        olmuştur. Lütfen bir süre bekleyip tekrar deneyiniz.
+        Girdiğiniz Kod Hatalı Lütfen Tekrar Deneyiniz.
       </Typography>
 
       <Button fullWidth onClick={handleTekrarDene} sx={retryButtonStyle}>

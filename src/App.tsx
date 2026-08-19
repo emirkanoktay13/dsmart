@@ -10,48 +10,57 @@ import logo from "../public/logo.jpeg";
 import { ORANGE } from "./utils/colors";
 import type { PathSonucDurumu, sonucDurum } from "./utils/type";
 import { retryButtonStyle, verifyButtonStyle } from "./style/buttonStyle";
-import { descriptionStyle, pageStyle, titleStyle } from "./style/page";
-import { SonucIkon } from "./style/Icon";
+import { pageStyle } from "./style/page";
 import { cardStyle } from "./style/card";
 import { useSearchParams } from "react-router-dom";
+
+import SuccesStatus from "./components/succesStatus";
+import FailedThreeTimesStatus from "./components/FailedThreeTimesStatus";
+import RequestNotFound from "./components/RequestNotFound";
+import PathNotFound from "./components/PathNotFound";
+import TimeFinishedStatus from "./components/TimeFinishedStatus";
+import WrongSmsStatus from "./components/WrongSmsStatus";
 
 const CODE_LENGTH = 6;
 const TIMER_SECONDS = 180;
 
 function App() {
   const [gsmNo] = useState("5XX XXX XX XX");
+
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
+
   const [remaining, setRemaining] = useState(TIMER_SECONDS);
+
   const [sonuc, setSonuc] = useState<sonucDurum>();
   const [pathSonuc, setPathSonuc] = useState<PathSonucDurumu>(null);
 
   const [gonderiliyor, setGonderiliyor] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [hataMesaji, setHataMesaji] = useState("");
-
-  console.log(hataMesaji);
+  const [, setHataMesaji] = useState("");
 
   const [searchParams] = useSearchParams();
-
   const getPath = searchParams.get("path");
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (getPath == null) {
-      setSonuc("bulunamadi");
+      setPathSonuc("bulunamadi");
       return;
     }
+
     sendPath();
   }, [getPath]);
+
+  useEffect(() => {});
 
   const sendPath = async () => {
     try {
       if (!getPath) {
-        setSonuc("bulunamadi");
+        setPathSonuc("bulunamadi");
         return;
       }
 
       const formData = new FormData();
-
       formData.append("path", getPath);
 
       const response = await fetch(
@@ -86,7 +95,6 @@ function App() {
       setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
     }
   };
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (sonuc || remaining <= 0) {
@@ -115,7 +123,6 @@ function App() {
       const value = e.target.value.replace(/[^0-9]/g, "").slice(-1);
 
       const next = [...code];
-
       next[index] = value;
 
       setCode(next);
@@ -155,6 +162,10 @@ function App() {
     inputRefs.current[focusIndex]?.focus();
   };
 
+  const isCodeComplete = code.every((digit) => digit !== "");
+
+  const sureBitti = remaining <= 0;
+
   const sendCode = async () => {
     if (!isCodeComplete || gonderiliyor || !getPath) {
       return;
@@ -180,264 +191,258 @@ function App() {
         },
       );
 
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
       const data = await response.json();
 
       console.log("Backend response:", data);
 
-      if (data.process == 1) {
+      if (data.process === 1) {
+        setPathSonuc(null);
         setSonuc("sureDoldu");
-      } else if (data.process == 2) {
+      } else if (data.process === 2) {
+        setPathSonuc(null);
         setSonuc("basarili");
       } else {
+        setPathSonuc(null);
         setSonuc("smsHata");
         setHataMesaji(data.message || "SMS kodu hatalı");
       }
     } catch (error) {
       console.error("Backend hatası:", error);
+
       setHataMesaji("Bağlantı hatası, lütfen tekrar deneyin.");
+
+      setPathSonuc(null);
+      setSonuc("smsHata");
     } finally {
       setGonderiliyor(false);
     }
   };
+
   const handleTekrarDene = () => {
     window.location.reload();
   };
 
-  const isCodeComplete = code.every((digit) => digit !== "");
-
-  const sureBitti = remaining <= 0;
-
   return (
     <Box sx={pageStyle}>
       <Paper elevation={0} sx={cardStyle}>
-        {pathSonuc === "basarisiz" && (
-          <Box sx={{ py: 3.5 }}>
-            <SonucIkon tip="hata" />
-
-            <Typography sx={titleStyle}>İşlem Başarısız</Typography>
-
-            <Typography sx={descriptionStyle}>
-              İşleminiz gerçekleştirilemedi. Lütfen daha sonra tekrar deneyiniz.
-            </Typography>
-          </Box>
-        )}
-
-        {pathSonuc === "bulunamadi" && (
-          <Box sx={{ py: 3.5 }}>
-            <SonucIkon tip="bulunamadi" />
-
-            <Typography sx={titleStyle}>Kaydınız Bulunamadı!</Typography>
-
-            <Typography sx={descriptionStyle}>
-              Kaydınız bulunamadı. Lütfen daha sonra tekrar deneyiniz.
-            </Typography>
-          </Box>
-        )}
-
-        {pathSonuc === "basarili" && (
+        {" "}
+        {pathSonuc === "devam" ? (
           <>
-            {pathSonuc === "devam" && (
-              <>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: 160,
-                    mb: 0.75,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={logo}
-                    alt="D-Smart"
-                    sx={{
-                      width: 180,
-                      maxWidth: "70%",
-                      height: "auto",
-                      objectFit: "contain",
-                    }}
-                  />
-                </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: 160,
+                mb: 0.75,
+              }}
+            >
+              <Box
+                component="img"
+                src={logo}
+                alt="D-Smart"
+                sx={{
+                  width: 180,
+                  maxWidth: "70%",
+                  height: "auto",
+                  objectFit: "contain",
+                }}
+              />
+            </Box>
 
-                <Box
+            <Box
+              sx={{
+                width: "100%",
+                borderTop: "1px solid #d8d8d8",
+                mb: 3,
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: {
+                  xs: 22,
+                  sm: 24,
+                },
+                fontWeight: 700,
+                color: "#172033",
+                lineHeight: 1.2,
+                mb: 1.5,
+              }}
+            >
+              SMS Doğrulama Kodu
+            </Typography>
+
+            <Typography
+              sx={{
+                color: "#596579",
+                fontSize: 14.5,
+                lineHeight: 1.5,
+                mb: 3,
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  fontWeight: 700,
+                }}
+              >
+                {gsmNo}
+              </Box>{" "}
+              numarasına gönderilen 6 haneli kodu giriniz.
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                gap: {
+                  xs: 0.6,
+                  sm: 1,
+                },
+                mb: 3,
+              }}
+            >
+              {code.map((digit, index) => (
+                <TextField
+                  key={index}
+                  value={digit}
+                  onChange={handleChange(index)}
+                  onKeyDown={handleKeyDown(index)}
+                  onPaste={handlePaste}
+                  inputRef={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
+                  autoFocus={index === 0}
+                  variant="outlined"
                   sx={{
-                    width: "100%",
-                    borderTop: "1px solid #d8d8d8",
-                    mb: 3,
+                    width: {
+                      xs: 40,
+                      sm: 46,
+                    },
+
+                    "& .MuiOutlinedInput-root": {
+                      height: {
+                        xs: 48,
+                        sm: 54,
+                      },
+
+                      borderRadius: "9px",
+                      backgroundColor: "#fff",
+
+                      "& fieldset": {
+                        border: "1.5px solid #d9dee5",
+                      },
+
+                      "&:hover fieldset": {
+                        borderColor: "#c5ccd5",
+                      },
+
+                      "&.Mui-focused fieldset": {
+                        borderColor: ORANGE,
+                        borderWidth: "2px",
+                      },
+                    },
+
+                    "& .MuiInputBase-input": {
+                      padding: 0,
+                      textAlign: "center",
+                      fontSize: {
+                        xs: 19,
+                        sm: 20,
+                      },
+                      fontWeight: 600,
+                      color: "#172033",
+                    },
+                  }}
+                  slotProps={{
+                    htmlInput: {
+                      inputMode: "numeric",
+                      maxLength: 1,
+                    },
                   }}
                 />
+              ))}
+            </Box>
 
-                <Typography
-                  sx={{
-                    fontSize: {
-                      xs: 22,
-                      sm: 24,
-                    },
-                    fontWeight: 700,
-                    color: "#172033",
-                    lineHeight: 1.2,
-                    mb: 1.5,
-                  }}
-                >
-                  SMS Doğrulama Kodu
-                </Typography>
+            <Typography
+              sx={{
+                color: "#708096",
+                fontSize: 14.5,
+                mb: 3,
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  fontSize: 15.5,
+                  mr: 0.5,
+                }}
+              >
+                ⏱
+              </Box>
+              Kalan süre:
+              <Box
+                component="span"
+                sx={{
+                  fontWeight: 700,
+                  color: "#111827",
+                  ml: 0.5,
+                }}
+              >
+                {sureBitti ? "Süre Doldu" : formatTime(remaining)}
+              </Box>
+            </Typography>
 
-                <Typography
-                  sx={{
-                    color: "#596579",
-                    fontSize: 14.5,
-                    lineHeight: 1.5,
-                    mb: 3,
-                  }}
-                >
-                  <Box
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                    }}
-                  >
-                    {gsmNo}
-                  </Box>{" "}
-                  numarasına gönderilen 6 haneli kodu giriniz.
-                </Typography>
+            <Button
+              fullWidth
+              variant="outlined"
+              disabled={!sureBitti}
+              onClick={handleTekrarDene}
+              sx={{
+                ...retryButtonStyle,
+                mb: 1.25,
+              }}
+            >
+              TEKRAR DENE
+            </Button>
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: {
-                      xs: 0.6,
-                      sm: 1,
-                    },
-                    mb: 3,
-                  }}
-                >
-                  {code.map((digit, index) => (
-                    <TextField
-                      key={index}
-                      value={digit}
-                      onChange={handleChange(index)}
-                      onKeyDown={handleKeyDown(index)}
-                      onPaste={handlePaste}
-                      inputRef={(el) => {
-                        inputRefs.current[index] = el;
-                      }}
-                      autoFocus={index === 0}
-                      variant="outlined"
-                      sx={{
-                        width: {
-                          xs: 40,
-                          sm: 46,
-                        },
+            <Button
+              fullWidth
+              variant="contained"
+              disabled={!isCodeComplete || gonderiliyor}
+              onClick={sendCode}
+              sx={{
+                ...verifyButtonStyle,
 
-                        "& .MuiOutlinedInput-root": {
-                          height: {
-                            xs: 48,
-                            sm: 54,
-                          },
-
-                          borderRadius: "9px",
-                          backgroundColor: "#fff",
-
-                          "& fieldset": {
-                            border: "1.5px solid #d9dee5",
-                          },
-
-                          "&:hover fieldset": {
-                            borderColor: "#c5ccd5",
-                          },
-
-                          "&.Mui-focused fieldset": {
-                            borderColor: ORANGE,
-                            borderWidth: "2px",
-                          },
-                        },
-
-                        "& .MuiInputBase-input": {
-                          padding: 0,
-                          textAlign: "center",
-                          fontSize: {
-                            xs: 19,
-                            sm: 20,
-                          },
-                          fontWeight: 600,
-                          color: "#172033",
-                        },
-                      }}
-                      slotProps={{
-                        htmlInput: {
-                          inputMode: "numeric",
-                          maxLength: 1,
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-
-                <Typography
-                  sx={{
-                    color: "#708096",
-                    fontSize: 14.5,
-                    mb: 3,
-                  }}
-                >
-                  <Box
-                    component="span"
-                    sx={{
-                      fontSize: 15.5,
-                      mr: 0.5,
-                    }}
-                  >
-                    ⏱
-                  </Box>
-                  Kalan süre:{" "}
-                  <Box
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                      color: "#111827",
-                      ml: 0.5,
-                    }}
-                  >
-                    {sureBitti ? "Süre Doldu" : formatTime(remaining)}
-                  </Box>
-                </Typography>
-
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  disabled={!sureBitti}
-                  onClick={handleTekrarDene}
-                  sx={{
-                    ...retryButtonStyle,
-                    mb: 1.25,
-                  }}
-                >
-                  TEKRAR DENE
-                </Button>
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  disabled={!isCodeComplete || gonderiliyor || sureBitti}
-                  onClick={sendCode}
-                  sx={{
-                    ...verifyButtonStyle,
-
-                    "&.Mui-disabled": {
-                      backgroundColor: ORANGE,
-                      color: "#fff",
-                      opacity: 1,
-                    },
-                  }}
-                >
-                  {gonderiliyor ? "KONTROL EDİLİYOR..." : "DOĞRULA VE DEVAM ET"}
-                </Button>
-              </>
-            )}
+                "&.Mui-disabled": {
+                  backgroundColor: ORANGE,
+                  color: "#fff",
+                  opacity: 1,
+                },
+              }}
+            >
+              {gonderiliyor ? "KONTROL EDİLİYOR..." : "DOĞRULA VE DEVAM ET"}
+            </Button>
           </>
-        )}
+        ) : pathSonuc === "basarili" ? (
+          <SuccesStatus />
+        ) : pathSonuc === "hataliIslem" ? (
+          <FailedThreeTimesStatus />
+        ) : pathSonuc === "bulunamadi" ? (
+          <RequestNotFound />
+        ) : pathSonuc === "yanlisPath" ? (
+          <PathNotFound />
+        ) : sonuc === "sureDoldu" ? (
+          <TimeFinishedStatus />
+        ) : sonuc === "basarili" ? (
+          <SuccesStatus />
+        ) : sonuc === "smsHata" ? (
+          <WrongSmsStatus />
+        ) : null}
       </Paper>
     </Box>
   );

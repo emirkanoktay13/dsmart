@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { SonucIkon } from "../style/Icon";
 import { descriptionStyle, titleStyle } from "../style/page";
 
-function succesStatus() {
+function SuccesStatus() {
   return (
     <Box sx={{ py: 3.5 }}>
       <SonucIkon tip="basarili" />
@@ -16,4 +16,4 @@ function succesStatus() {
   );
 }
 
-export default succesStatus;
+export default SuccesStatus;
