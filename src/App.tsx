@@ -197,6 +197,7 @@ function App() {
   };
   const handleTekrarDene = () => {
     window.location.reload();
+    setPathSonuc("basarili");
   };
 
   const isCodeComplete = code.every((digit) => digit !== "");
@@ -206,7 +207,6 @@ function App() {
   return (
     <Box sx={pageStyle}>
       <Paper elevation={0} sx={cardStyle}>
-        {/* PATH KONTROLÜ */}
         {pathSonuc === "basarisiz" && (
           <Box sx={{ py: 3.5 }}>
             <SonucIkon tip="hata" />
@@ -231,7 +231,6 @@ function App() {
           </Box>
         )}
 
-        {/* PATH BAŞARILI → OTP SAYFASI */}
         {pathSonuc === "basarili" && (
           <>
             {sonuc === "basarili" && (
@@ -284,7 +283,6 @@ function App() {
               </Box>
             )}
 
-            {/* OTP EKRANI */}
             {!sonuc && (
               <>
                 <Box
