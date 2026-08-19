@@ -25,7 +25,7 @@ const CODE_LENGTH = 6;
 const TIMER_SECONDS = 180;
 
 function App() {
-  const [gsmNo] = useState("5XX XXX XX XX");
+  const [gsmNo, setGsmNo] = useState("");
 
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
 
@@ -81,6 +81,8 @@ function App() {
 
       if (data.process === 1) {
         setPathSonuc("devam");
+
+        setGsmNo(`+90 xxx xxx ${data.gsm.slice(10, 12)}`);
       } else if (data.process === 2) {
         setPathSonuc("basarili");
       } else if (data.process === 3) {
@@ -413,7 +415,7 @@ function App() {
             <Button
               fullWidth
               variant="contained"
-              disabled={!isCodeComplete || gonderiliyor}
+              disabled={!isCodeComplete || gonderiliyor || sureBitti}
               onClick={sendCode}
               sx={{
                 ...verifyButtonStyle,
