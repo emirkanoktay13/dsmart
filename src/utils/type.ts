@@ -1,6 +1,10 @@
-export type SonucDurumu =
+export type PathSonucDurumu =
+  | "devam"
   | null
   | "basarili"
-  | "basarisiz"
+  | "hataliIslem"
   | "hata"
-  | "bulunamadi";
+  | "bulunamadi"
+  | "yanlisPath";
+
+export type sonucDurum = "basarili" | "sureDoldu" | "smsHata";

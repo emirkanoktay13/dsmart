@@ -8,7 +8,7 @@ import {
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import logo from "../public/logo.jpeg";
 import { ORANGE } from "./utils/colors";
-import type { SonucDurumu } from "./utils/type";
+import type { PathSonucDurumu, sonucDurum } from "./utils/type";
 import { retryButtonStyle, verifyButtonStyle } from "./style/buttonStyle";
 import { descriptionStyle, pageStyle, titleStyle } from "./style/page";
 import { SonucIkon } from "./style/Icon";
@@ -22,8 +22,8 @@ function App() {
   const [gsmNo] = useState("5XX XXX XX XX");
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [remaining, setRemaining] = useState(TIMER_SECONDS);
-  const [sonuc, setSonuc] = useState<SonucDurumu>(null);
-  const [pathSonuc, setPathSonuc] = useState<SonucDurumu>(null);
+  const [sonuc, setSonuc] = useState<sonucDurum>();
+  const [pathSonuc, setPathSonuc] = useState<PathSonucDurumu>(null);
 
   const [gonderiliyor, setGonderiliyor] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -71,13 +71,15 @@ function App() {
       console.log("Process response:", data);
 
       if (data.process === 1) {
-        setPathSonuc(null);
+        setPathSonuc("devam");
       } else if (data.process === 2) {
         setPathSonuc("basarili");
       } else if (data.process === 3) {
-        setPathSonuc("basarisiz");
+        setPathSonuc("hataliIslem");
       } else if (data.process === 4) {
         setPathSonuc("bulunamadi");
+      } else if (data.process === 5) {
+        setPathSonuc("yanlisPath");
       }
     } catch (error) {
       console.error("processCheck hatası:", error);
@@ -182,10 +184,12 @@ function App() {
 
       console.log("Backend response:", data);
 
-      if (data.process === true) {
+      if (data.process == 1) {
+        setSonuc("sureDoldu");
+      } else if (data.process == 2) {
         setSonuc("basarili");
       } else {
-        setSonuc("basarisiz");
+        setSonuc("smsHata");
         setHataMesaji(data.message || "SMS kodu hatalı");
       }
     } catch (error) {
@@ -197,7 +201,6 @@ function App() {
   };
   const handleTekrarDene = () => {
     window.location.reload();
-    setPathSonuc("basarili");
   };
 
   const isCodeComplete = code.every((digit) => digit !== "");
@@ -233,57 +236,7 @@ function App() {
 
         {pathSonuc === "basarili" && (
           <>
-            {sonuc === "basarili" && (
-              <Box sx={{ py: 3.5 }}>
-                <SonucIkon tip="basarili" />
-
-                <Typography sx={titleStyle}>İşlem Başarılı</Typography>
-
-                <Typography sx={descriptionStyle}>
-                  Doğrulamanız tamamlandı, işleminiz onaylandı.
-                </Typography>
-              </Box>
-            )}
-
-            {sonuc === "basarisiz" && (
-              <Box sx={{ py: 3.5 }}>
-                <SonucIkon tip="hata" />
-
-                <Typography sx={titleStyle}>İşlem Başarısız</Typography>
-
-                <Typography
-                  sx={{
-                    ...descriptionStyle,
-                    mb: 3.5,
-                  }}
-                >
-                  İşleminiz, çok fazla hatalı kod girişi yapıldığı için
-                  başarısız olmuştur. Lütfen bir süre bekleyip tekrar deneyiniz.
-                </Typography>
-
-                <Button
-                  fullWidth
-                  onClick={handleTekrarDene}
-                  sx={retryButtonStyle}
-                >
-                  TEKRAR DENE
-                </Button>
-              </Box>
-            )}
-
-            {sonuc === "bulunamadi" && (
-              <Box sx={{ py: 3.5 }}>
-                <SonucIkon tip="bulunamadi" />
-
-                <Typography sx={titleStyle}>Kaydınız Bulunamadı!</Typography>
-
-                <Typography sx={descriptionStyle}>
-                  Kaydınız bulunamadı. Lütfen daha sonra tekrar deneyiniz.
-                </Typography>
-              </Box>
-            )}
-
-            {!sonuc && (
+            {pathSonuc === "devam" && (
               <>
                 <Box
                   sx={{
