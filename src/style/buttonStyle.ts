@@ -40,6 +40,6 @@ export const retryButtonStyle = {
   "&.Mui-disabled": {
     color: BLUE,
     borderColor: BLUE,
-    opacity: 0.65,
+    opacity: 0.75,
   },
 };
