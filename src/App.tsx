@@ -77,7 +77,7 @@ function App() {
 
       const data = await response.json();
 
-      console.log("Process response:", data);
+      // console.log("Process response:", data);
 
       if (data.process === 1) {
         setPathSonuc("devam");
@@ -199,7 +199,7 @@ function App() {
 
       const data = await response.json();
 
-      console.log("Backend response:", data);
+      // console.log("Backend response:", data);
 
       if (data.process === 1) {
         setPathSonuc(null);
@@ -446,6 +446,7 @@ function App() {
           <WrongSmsStatus />
         ) : null}
       </Paper>
+      
     </Box>
   );
 }
